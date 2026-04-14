@@ -6,6 +6,7 @@ const {
   getSingleProduct,
   createProject,
   deleteProject,
+  editProject,
 } = require("../controllers/projects.controller");
 const multer = require("multer");
 const { protect } = require("../middleware/protect");
@@ -18,4 +19,5 @@ router.get("/category/:stack", getProductByStack);
 router.get("/:id", getSingleProduct);
 router.post("/", protect, upload.single("image"), createProject);
 router.delete("/:id", protect, deleteProject);
+router.patch("/:id", protect, upload.single("image"), editProject);
 module.exports = router;
