@@ -36,7 +36,7 @@ const getSingleProduct = async (req, res) => {
 };
 const getFeaturedProducts = async (req, res) => {
   try {
-    const projects = await Project.find({ featured: true });
+    const projects = await Project.find({ featured: true }).limit(6);
     return res.status(200).json({
       status: "success",
       results: projects.length,
@@ -83,58 +83,67 @@ const createProject = async (req, res) => {
       duration,
       role,
       status,
-      sections,
+      overview,
+      challenges,
+      features,
+      learnings,
     } = req.body;
-    const project = await Project.findOne({
-      $and: [{ githubLink }, { liveLink }],
+
+    const existingProject = await Project.findOne({
+      $or: [{ githubLink }, { liveLink }],
     });
-    if (project) {
+
+    if (existingProject) {
       return res.status(400).json({
         status: "failed",
         message: "Project already exists",
       });
     }
-    const parsedSections =
-      typeof sections === "string" ? JSON.parse(sections) : sections;
     const parsedStack = typeof stack === "string" ? JSON.parse(stack) : stack;
     const parsedTechnologies =
       typeof technologies === "string"
         ? JSON.parse(technologies)
         : technologies;
+
+    const parsedChallenges =
+      typeof challenges === "string" ? JSON.parse(challenges) : challenges;
+    const parsedFeatures =
+      typeof features === "string" ? JSON.parse(features) : features;
+    const parsedLearnings =
+      typeof learnings === "string" ? JSON.parse(learnings) : learnings;
     const file = req.file;
-    if (!file) {
-      return res
-        .status(400)
-        .json({ status: "failed", message: "No image provided" });
+    let image = {};
+
+    if (file) {
+      const uploadImage = () =>
+        new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            {
+              folder: "projects",
+              resource_type: "image",
+            },
+            (error, result) => {
+              if (error) return reject(error);
+              resolve(result);
+            },
+          );
+
+          stream.end(file.buffer);
+        });
+
+      const result = await uploadImage();
+
+      image = {
+        url: result.secure_url,
+        public_id: result.public_id,
+      };
     }
-
-    const uploadImage = () => {
-      return new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-          {
-            folder: "projects",
-            resource_type: "image",
-          },
-          (error, result) => {
-            if (error) return reject(error);
-            resolve(result);
-          },
-        );
-
-        stream.end(file.buffer);
-      });
-    };
-
-    const result = await uploadImage();
-
-    const image = { url: result.secure_url, public_id: result.public_id };
 
     const newProject = await Project.create({
       title,
       description,
       subtitle,
       slug,
-      subtitle,
       image,
       technologies: parsedTechnologies,
       githubLink,
@@ -146,10 +155,15 @@ const createProject = async (req, res) => {
       duration,
       role,
       status,
-      sections: parsedSections,
+      challenges: parsedChallenges,
+      overview,
+      features: parsedFeatures,
+      learnings: parsedLearnings,
     });
+
     return res.status(201).json({
       status: "success",
+      data: newProject,
     });
   } catch (error) {
     return res.status(500).json({
@@ -186,7 +200,7 @@ const deleteProject = async (req, res) => {
 const editProject = async (req, res) => {
   try {
     const { id } = req.params;
-    const body = req.body;
+
     const {
       title,
       description,
@@ -202,8 +216,11 @@ const editProject = async (req, res) => {
       duration,
       role,
       status,
-      sections,
-    } = body;
+      challenges,
+      overview,
+      features,
+      learnings,
+    } = req.body;
 
     const project = await Project.findById(id);
 
@@ -216,7 +233,7 @@ const editProject = async (req, res) => {
 
     const existing = await Project.findOne({
       _id: { $ne: id },
-      $and: [{ githubLink }, { liveLink }],
+      $or: [{ githubLink }, { liveLink }],
     });
 
     if (existing) {
@@ -226,47 +243,6 @@ const editProject = async (req, res) => {
       });
     }
 
-    const parsedSections =
-      typeof sections === "string" ? JSON.parse(sections) : sections;
-
-    const parsedStack = typeof stack === "string" ? JSON.parse(stack) : stack;
-
-    const parsedTechnologies =
-      typeof technologies === "string"
-        ? JSON.parse(technologies)
-        : technologies;
-
-    let image = project.image;
-
-    if (req.file) {
-      if (project.image?.public_id) {
-        await cloudinary.uploader.destroy(project.image.public_id);
-      }
-
-      const uploadImage = () => {
-        return new Promise((resolve, reject) => {
-          const stream = cloudinary.uploader.upload_stream(
-            {
-              folder: "projects",
-              resource_type: "image",
-            },
-            (error, result) => {
-              if (error) return reject(error);
-              resolve(result);
-            },
-          );
-
-          stream.end(req.file.buffer);
-        });
-      };
-
-      const result = await uploadImage();
-
-      image = {
-        url: result.secure_url,
-        public_id: result.public_id,
-      };
-    }
     const updatedProject = await Project.findByIdAndUpdate(
       id,
       {
@@ -282,10 +258,12 @@ const editProject = async (req, res) => {
         duration,
         role,
         status,
-        image,
-        technologies: parsedTechnologies,
-        stack: parsedStack,
-        sections: parsedSections,
+        technologies,
+        stack,
+        challenges,
+        features,
+        learnings,
+        overview,
       },
       {
         new: true,

@@ -1,24 +1,15 @@
 const mongoose = require("mongoose");
 const slugify = require("slugify");
-const sectionSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-
-  content: { type: String },
-
-  list: [{ type: String }],
-
-  items: [
-    {
-      problem: { type: String },
-      solution: { type: String },
-    },
-  ],
-});
 
 const projectSchema = new mongoose.Schema(
   {
-    title: { type: String, required: true },
-    description: { type: String, required: true },
+    title: { type: String },
+    description: { type: String },
+    slug: {
+      type: String,
+      unique: true,
+      index: true,
+    },
     subtitle: { type: String },
     image: {
       url: { type: String },
@@ -50,15 +41,17 @@ const projectSchema = new mongoose.Schema(
     year: { type: String },
     duration: { type: String },
     role: { type: String },
-
-    sections: [sectionSchema],
+    overview: { type: String },
+    challenges: [{ type: String }],
+    features: [{ type: String }],
+    learnings: [{ type: String }],
   },
   {
     timestamps: true,
   },
 );
 projectSchema.pre("save", function () {
-  if (!this.slug) {
+  if (this.title && !this.slug) {
     this.slug = slugify(this.title, {
       lower: true,
       strict: true,

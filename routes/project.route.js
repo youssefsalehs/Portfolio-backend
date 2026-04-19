@@ -19,5 +19,5 @@ router.get("/category/:stack", getProductByStack);
 router.get("/:id", getSingleProduct);
 router.post("/", protect, upload.single("image"), createProject);
 router.delete("/:id", protect, deleteProject);
-router.patch("/:id", protect, upload.single("image"), editProject);
+router.patch("/:id", protect, editProject);
 module.exports = router;
