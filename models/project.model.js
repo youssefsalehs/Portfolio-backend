@@ -3,7 +3,7 @@ const slugify = require("slugify");
 
 const projectSchema = new mongoose.Schema(
   {
-    title: { type: String },
+    title: { type: String, unique: true },
     description: { type: String },
     slug: {
       type: String,
@@ -18,8 +18,8 @@ const projectSchema = new mongoose.Schema(
 
     technologies: [{ type: String }],
 
-    githubLink: { type: String },
-    liveLink: { type: String },
+    githubLink: { type: String, unique: true },
+    liveLink: { type: String, unique: true },
 
     stack: [
       {
