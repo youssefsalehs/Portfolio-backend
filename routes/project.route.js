@@ -17,7 +17,10 @@ router.get("/", getProducts);
 router.get("/featured", getFeaturedProducts);
 router.get("/category/:stack", getProductByStack);
 router.get("/:id", getSingleProduct);
-router.post("/", protect, upload.single("image"), createProject);
+router.post("/", protect, upload.fields([
+    { name: "image", maxCount: 1 },
+    { name: "gallery", maxCount: 10 },
+  ]), createProject);
 router.delete("/:id", protect, deleteProject);
 router.patch("/:id", protect, editProject);
 module.exports = router;

@@ -1,6 +1,18 @@
 const mongoose = require("mongoose");
 const slugify = require("slugify");
-
+const imageSchema = new mongoose.Schema(
+  {
+    url: {
+      type: String,
+      required: true,
+    },
+    public_id: {
+      type: String,
+      required: true,
+    },
+  },
+  { _id: false }
+);
 const projectSchema = new mongoose.Schema(
   {
     title: { type: String, unique: true },
@@ -11,10 +23,8 @@ const projectSchema = new mongoose.Schema(
       index: true,
     },
     subtitle: { type: String },
-    image: {
-      url: { type: String },
-      public_id: { type: String },
-    },
+    image: imageSchema,
+    gallery: [imageSchema],
 
     technologies: [{ type: String }],
 

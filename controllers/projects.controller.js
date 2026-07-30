@@ -1,5 +1,6 @@
 const cloudinary = require("../config/cloudinary");
 const Project = require("../models/project.model");
+const { uploadBuffer } = require("../utils/uploadHelper");
 
 const getProducts = async (req, res) => {
   try {
@@ -99,39 +100,42 @@ const createProject = async (req, res) => {
         message: "Project already exists",
       });
     }
-    const parsedStack = typeof stack === "string" ? JSON.parse(stack) : stack;
+
+    const parsedStack =
+      typeof stack === "string" ? JSON.parse(stack) : stack;
+
     const parsedTechnologies =
       typeof technologies === "string"
         ? JSON.parse(technologies)
         : technologies;
 
     const parsedChallenges =
-      typeof challenges === "string" ? JSON.parse(challenges) : challenges;
+      typeof challenges === "string"
+        ? JSON.parse(challenges)
+        : challenges;
+
     const parsedFeatures =
-      typeof features === "string" ? JSON.parse(features) : features;
+      typeof features === "string"
+        ? JSON.parse(features)
+        : features;
+
     const parsedLearnings =
-      typeof learnings === "string" ? JSON.parse(learnings) : learnings;
-    const file = req.file;
+      typeof learnings === "string"
+        ? JSON.parse(learnings)
+        : learnings;
+
+
+
+    const coverFile = req.files?.image?.[0];
+    const galleryFiles = req.files?.gallery || [];
+
     let image = {};
 
-    if (file) {
-      const uploadImage = () =>
-        new Promise((resolve, reject) => {
-          const stream = cloudinary.uploader.upload_stream(
-            {
-              folder: "projects",
-              resource_type: "image",
-            },
-            (error, result) => {
-              if (error) return reject(error);
-              resolve(result);
-            },
-          );
-
-          stream.end(file.buffer);
-        });
-
-      const result = await uploadImage();
+    if (coverFile) {
+      const result = await uploadBuffer(
+        coverFile.buffer,
+        "projects"
+      );
 
       image = {
         url: result.secure_url,
@@ -139,12 +143,27 @@ const createProject = async (req, res) => {
       };
     }
 
+    const gallery = await Promise.all(
+      galleryFiles.map(async (file) => {
+        const result = await uploadBuffer(
+          file.buffer,
+          "projects/gallery"
+        );
+
+        return {
+          url: result.secure_url,
+          public_id: result.public_id,
+        };
+      })
+    );
+
     const newProject = await Project.create({
       title,
       description,
       subtitle,
       slug,
       image,
+      gallery,
       technologies: parsedTechnologies,
       githubLink,
       liveLink,
@@ -155,8 +174,8 @@ const createProject = async (req, res) => {
       duration,
       role,
       status,
-      challenges: parsedChallenges,
       overview,
+      challenges: parsedChallenges,
       features: parsedFeatures,
       learnings: parsedLearnings,
     });
