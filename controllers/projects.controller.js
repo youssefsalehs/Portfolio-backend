@@ -4,7 +4,7 @@ const { uploadBuffer } = require("../utils/uploadHelper");
 
 const getProducts = async (req, res) => {
   try {
-    const projects = await Project.find();
+    const projects = await Project.find().sort({ priority: 1 });
 
     return res.status(200).json({
       status: "success",
@@ -37,7 +37,7 @@ const getSingleProduct = async (req, res) => {
 };
 const getFeaturedProducts = async (req, res) => {
   try {
-    const projects = await Project.find({ featured: true }).limit(6);
+    const projects = await Project.find({ featured: true }).sort({ priority: 1 }).limit(6);
     return res.status(200).json({
       status: "success",
       results: projects.length,
@@ -53,7 +53,7 @@ const getFeaturedProducts = async (req, res) => {
 const getProductByStack = async (req, res) => {
   try {
     const { stack } = req.params;
-    const projects = await Project.find({ stack });
+    const projects = await Project.find({ stack }).sort({ priority: 1 });
 
     return res.status(200).json({
       status: "success",
