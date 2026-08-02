@@ -9,6 +9,7 @@ const connectdb = require("../config/mongodb");
 const projectsRoute = require("../routes/project.route");
 const allowedOrigins = [
   "http://localhost:3000",
+  "http://localhost:5173",
   "https://portfolio-backend-five-ecru.vercel.app",
 ];
 
