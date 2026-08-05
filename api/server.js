@@ -4,9 +4,9 @@ const helmet = require("helmet");
 const hpp = require("hpp");
 const cors = require("cors");
 require("dotenv").config();
-const authRoute = require("../routes/user.route");
+const authRoute = require("../routes/user.route.js");
 const connectdb = require("../config/mongodb");
-const projectsRoute = require("../routes/project.route");
+const projectsRoute = require("../routes/project.route.js");
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5173",

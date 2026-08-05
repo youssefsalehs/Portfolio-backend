@@ -1,6 +1,6 @@
-const cloudinary = require("../config/cloudinary");
-const Project = require("../models/project.model");
-const { uploadBuffer } = require("../utils/uploadHelper");
+const cloudinary = require("../config/cloudinary.js");
+const Project = require("../models/project.model.js");
+const { uploadBuffer } = require("../utils/uploadHelper.js");
 
 const getProducts = async (req, res) => {
   try {
@@ -37,7 +37,9 @@ const getSingleProduct = async (req, res) => {
 };
 const getFeaturedProducts = async (req, res) => {
   try {
-    const projects = await Project.find({ featured: true }).sort({ priority: 1 }).limit(6);
+    const projects = await Project.find({ featured: true })
+      .sort({ priority: 1 })
+      .limit(6);
     return res.status(200).json({
       status: "success",
       results: projects.length,
@@ -101,8 +103,7 @@ const createProject = async (req, res) => {
       });
     }
 
-    const parsedStack =
-      typeof stack === "string" ? JSON.parse(stack) : stack;
+    const parsedStack = typeof stack === "string" ? JSON.parse(stack) : stack;
 
     const parsedTechnologies =
       typeof technologies === "string"
@@ -110,21 +111,13 @@ const createProject = async (req, res) => {
         : technologies;
 
     const parsedChallenges =
-      typeof challenges === "string"
-        ? JSON.parse(challenges)
-        : challenges;
+      typeof challenges === "string" ? JSON.parse(challenges) : challenges;
 
     const parsedFeatures =
-      typeof features === "string"
-        ? JSON.parse(features)
-        : features;
+      typeof features === "string" ? JSON.parse(features) : features;
 
     const parsedLearnings =
-      typeof learnings === "string"
-        ? JSON.parse(learnings)
-        : learnings;
-
-
+      typeof learnings === "string" ? JSON.parse(learnings) : learnings;
 
     const coverFile = req.files?.image?.[0];
     const galleryFiles = req.files?.gallery || [];
@@ -132,10 +125,7 @@ const createProject = async (req, res) => {
     let image = {};
 
     if (coverFile) {
-      const result = await uploadBuffer(
-        coverFile.buffer,
-        "projects"
-      );
+      const result = await uploadBuffer(coverFile.buffer, "projects");
 
       image = {
         url: result.secure_url,
@@ -145,16 +135,13 @@ const createProject = async (req, res) => {
 
     const gallery = await Promise.all(
       galleryFiles.map(async (file) => {
-        const result = await uploadBuffer(
-          file.buffer,
-          "projects/gallery"
-        );
+        const result = await uploadBuffer(file.buffer, "projects/gallery");
 
         return {
           url: result.secure_url,
           public_id: result.public_id,
         };
-      })
+      }),
     );
 
     const newProject = await Project.create({
