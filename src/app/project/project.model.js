@@ -1,6 +1,7 @@
-const mongoose = require("mongoose");
-const slugify = require("slugify");
-const imageSchema = new mongoose.Schema(
+import { Schema, model } from "mongoose";
+
+import slugify from "slugify";
+const imageSchema = new Schema(
   {
     url: {
       type: String,
@@ -11,9 +12,9 @@ const imageSchema = new mongoose.Schema(
       required: true,
     },
   },
-  { _id: false }
+  { _id: false },
 );
-const projectSchema = new mongoose.Schema(
+const projectSchema = new Schema(
   {
     title: { type: String, unique: true },
     description: { type: String },
@@ -68,5 +69,5 @@ projectSchema.pre("save", function () {
     });
   }
 });
-const Project = mongoose.model("Project", projectSchema);
-module.exports = Project;
+const Project = model("Project", projectSchema);
+export default Project;
